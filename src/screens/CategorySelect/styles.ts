@@ -2,7 +2,7 @@ import { RFValue } from "react-native-responsive-fontsize";
 import styled from "styled-components/native";
 
 import {Feather} from "@expo/vector-icons"
-import { TouchableOpacity } from "react-native-gesture-handler";
+import { TouchableOpacity } from "react-native";
 
 interface CategoryProps {
     isActive: boolean;
@@ -31,7 +31,7 @@ export const Container = styled.View`
     font-size: ${RFValue(14)}px;
     `;
 
-    export const Category = styled.TouchableOpacity<CategoryProps>`
+    export const Category = styled(TouchableOpacity)<CategoryProps>`
         width: 100%;
         padding: ${RFValue(15)}px;
 
