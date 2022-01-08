@@ -23,6 +23,8 @@ import { Dashboard } from './src/screens/Dashboard';
 import { Register } from './src/screens/Register';
 import { CategorySelect } from './src/screens/CategorySelect';
 
+import { AuthProvider } from './src/context/AuthContext';
+
 const { Navigator, Screen } = createBottomTabNavigator();
 
 export default function App() {
@@ -44,7 +46,9 @@ export default function App() {
         {Platform.OS === 'ios' &&
           <StatusBar barStyle="light-content" />
         }
-        <AppRoutes />
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
       </NavigationContainer>
     </ThemeProvider>
   )

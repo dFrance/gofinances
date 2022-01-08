@@ -23,7 +23,7 @@ import {
 import { categories } from '../../utils/categories';
 import { VictoryPie } from 'victory-native';
 import { RFValue } from 'react-native-responsive-fontsize';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
 export interface CardProps {
@@ -37,6 +37,7 @@ export interface CardProps {
 interface CategoryProps {
     name: string,
     total: number,
+    color: string,
     totalFormatted: string,
     key: string,
     percent: string,
@@ -45,9 +46,8 @@ interface CategoryProps {
 export function Resume() {
     const [isLoading, setIsLoading] = useState(false)
     const [totalByCategories, setTotalByCategories] = useState<CategoryProps>([])
-    const theme = useTheme();
-
     const [selectedDate, setSelectedDate] = useState(new Date());
+    const theme = useTheme();
 
     function handleChangeDate(action: 'next' | 'prev') {
         if (action === 'next') {
@@ -56,56 +56,63 @@ export function Resume() {
             setSelectedDate(subMonths(selectedDate, 1))
         }
     }
+
     async function getTransactions() {
-        setIsLoading(true)
-        const dataKeyTransactions = '@gofinances:transactions';
-        const response = await AsyncStorage.getItem(dataKeyTransactions)
-        const responseFormatted = response ? JSON.parse(response) : []
-        const totalByCategory = []
-        const expensives = responseFormatted
-            .filter((expensive: CardProps) =>
-                expensive.type === 'negative' &&
-                new Date(expensive.date).getMonth() === selectedDate.getMonth() &&
-                new Date(expensive.date).getFullYear() === selectedDate.getFullYear())
+        try {
+            setIsLoading(true)
+            const dataKeyTransactions = '@gofinances:transactions';
+            const response = await AsyncStorage.getItem(dataKeyTransactions)
+            const responseFormatted = response ? JSON.parse(response) : []
+            const totalByCategory = []
+            const expensives = responseFormatted
+                .filter((expensive: CardProps) =>
+                    expensive.type === 'negative' &&
+                    new Date(expensive.date).getMonth() === selectedDate.getMonth() &&
+                    new Date(expensive.date).getFullYear() === selectedDate.getFullYear())
 
-        const expensiveTotal = expensives.reduce((acc: number, expensive: CardProps) => {
-            return acc + Number(expensive.amount)
-        }, 0)
-        categories.forEach(category => {
-            let categorySum = 0;
+            const expensiveTotal = expensives.reduce((acc: number, expensive: CardProps) => {
+                return acc + Number(expensive.amount)
+            }, 0)
+            categories.forEach(category => {
+                let categorySum = 0;
 
-            expensives.forEach((expensive: CardProps) => {
-                if (expensive.category === category.key) {
-                    categorySum += Number(expensive.amount)
-                }
-            })
-
-            if (categorySum > 0) {
-                const totalFormatted = categorySum.toLocaleString('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL'
+                expensives.forEach((expensive: CardProps) => {
+                    if (expensive.category === category.key) {
+                        categorySum += Number(expensive.amount)
+                    }
                 })
 
-                const percent = `${(categorySum / expensiveTotal * 100).toFixed(0)}%`;
+                if (categorySum > 0) {
+                    const totalFormatted = categorySum.toLocaleString('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL'
+                    })
 
-                totalByCategory.push({
-                    key: category.key,
-                    name: category.name,
-                    color: category.color,
-                    total: categorySum,
-                    percent,
-                    totalFormatted
-                });
-            }
-        });
+                    const percent = `${(categorySum / expensiveTotal * 100).toFixed(0)}%`;
 
-        setTotalByCategories(totalByCategory)
-        setIsLoading(false)
+                    totalByCategory.push({
+                        key: category.key,
+                        name: category.name,
+                        color: category.color,
+                        total: categorySum,
+                        percent,
+                        totalFormatted
+                    });
+                }
+            });
+
+            setTotalByCategories(totalByCategory)
+            setIsLoading(false)
+        } catch (error) {
+            console.log(error)
+            Alert.alert("Não foi possível carregar suas transações.")
+        }
     }
 
     useFocusEffect(useCallback(() => {
         getTransactions()
     }, [selectedDate]))
+    
     return (
         <Container>
             <Header>

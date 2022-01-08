@@ -41,7 +41,7 @@ interface HighlightProps {
 }
 
 export function Dashboard() {
-    const [isLoading, setIsLoading] = useState(true)
+    const [isLoading, setIsLoading] = useState(false)
     const [transactions, setTransactions] = useState<DataListProps>([])
     const theme = useTheme();
     const [highlightData, setHighLightData] = useState<HighlightProps>({
@@ -69,6 +69,7 @@ export function Dashboard() {
     }
 
     async function getTransactions() {
+        setIsLoading(true)
         const dataKeyTransactions = '@gofinances:transactions';
         const response = await AsyncStorage.getItem(dataKeyTransactions)
         const transactions = response ? JSON.parse(response) : [];
